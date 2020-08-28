@@ -20,9 +20,12 @@ import java.util.List;
 
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebElement;
+import org.vividus.ui.action.search.IActionAttributeType;
+import org.vividus.ui.action.search.IElementSearchAction;
+import org.vividus.ui.action.search.SearchParameters;
 import org.vividus.ui.web.util.LocatorUtil;
 
-public class ElementNameSearch extends AbstractElementSearchAction implements IElementSearchAction
+public class ElementNameSearch extends AbstractWebElementSearchAction implements IElementSearchAction
 {
     @Override
     public List<WebElement> search(SearchContext searchContext, SearchParameters parameters)
@@ -34,5 +37,11 @@ public class ElementNameSearch extends AbstractElementSearchAction implements IE
                     LocatorUtil.getXPathLocator(".//*[@*=%1$s or text()=%1$s]", elementName), parameters, "*");
         }
         return List.of();
+    }
+
+    @Override
+    public IActionAttributeType getAttributeType()
+    {
+        return ActionAttributeType.ELEMENT_NAME;
     }
 }

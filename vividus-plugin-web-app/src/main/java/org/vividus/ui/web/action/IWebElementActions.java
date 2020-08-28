@@ -19,7 +19,7 @@ package org.vividus.ui.web.action;
 import java.util.List;
 
 import org.openqa.selenium.WebElement;
-import org.vividus.ui.web.action.search.SearchAttributes;
+import org.vividus.ui.action.search.SearchAttributes;
 
 public interface IWebElementActions
 {

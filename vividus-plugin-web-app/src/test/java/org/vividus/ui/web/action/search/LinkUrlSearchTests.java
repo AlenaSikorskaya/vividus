@@ -50,11 +50,13 @@ import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.vividus.selenium.IWebDriverProvider;
-import org.vividus.ui.web.action.IExpectedConditions;
-import org.vividus.ui.web.action.IExpectedSearchContextCondition;
+import org.vividus.ui.action.IExpectedConditions;
+import org.vividus.ui.action.IExpectedSearchContextCondition;
+import org.vividus.ui.action.WaitResult;
+import org.vividus.ui.action.search.AbstractElementSearchAction;
+import org.vividus.ui.action.search.SearchParameters;
 import org.vividus.ui.web.action.JavascriptActions;
-import org.vividus.ui.web.action.WaitActions;
-import org.vividus.ui.web.action.WaitResult;
+import org.vividus.ui.web.action.WebWaitActions;
 
 @ExtendWith({ TestLoggerFactoryExtension.class, MockitoExtension.class })
 class LinkUrlSearchTests
@@ -91,7 +93,7 @@ class LinkUrlSearchTests
     private SearchContext searchContext;
 
     @Mock
-    private WaitActions waitActions;
+    private WebWaitActions waitActions;
 
     @Mock
     private IExpectedConditions<By> expectedSearchContextConditions;

@@ -18,6 +18,7 @@ package org.vividus.ui.web.action.search;
 
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
+import org.vividus.ui.action.search.IActionAttributeType;
 
 public class DropDownTextFilter extends AbstractElementFilterAction
 {
@@ -28,5 +29,11 @@ public class DropDownTextFilter extends AbstractElementFilterAction
                 .map(WebElement::getText)
                 .map(String::trim)
                 .anyMatch(text::equals);
+    }
+
+    @Override
+    public IActionAttributeType getAttributeType()
+    {
+        return ActionAttributeType.DROP_DOWN_TEXT;
     }
 }

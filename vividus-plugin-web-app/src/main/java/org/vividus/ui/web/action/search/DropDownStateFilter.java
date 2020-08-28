@@ -16,8 +16,14 @@
 
 package org.vividus.ui.web.action.search;
 
+import org.vividus.ui.action.search.IActionAttributeType;
 import org.vividus.ui.web.DropDownState;
 
 public class DropDownStateFilter extends AbstractStateFilter<DropDownState>
 {
+    @Override
+    public IActionAttributeType getAttributeType()
+    {
+        return ActionAttributeType.DROP_DOWN_STATE;
+    }
 }

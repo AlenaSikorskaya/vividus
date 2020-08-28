@@ -21,6 +21,9 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebElement;
+import org.vividus.ui.action.search.IActionAttributeType;
+import org.vividus.ui.action.search.IElementSearchAction;
+import org.vividus.ui.action.search.SearchParameters;
 import org.vividus.ui.web.util.LocatorUtil;
 
 public class CaseSensitiveTextSearch extends AbstractElementFilterAction implements IElementSearchAction
@@ -44,5 +47,11 @@ public class CaseSensitiveTextSearch extends AbstractElementFilterAction impleme
         String elementText = getWebElementActions().getElementText(element);
         return text.equals(elementText) || StringUtils.equalsIgnoreCase(elementText, text) && matchesToText(element,
                 text);
+    }
+
+    @Override
+    public IActionAttributeType getAttributeType()
+    {
+        return ActionAttributeType.CASE_SENSITIVE_TEXT;
     }
 }

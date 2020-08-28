@@ -18,6 +18,7 @@ package org.vividus.ui.web.action.search;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.vividus.ui.action.search.IActionAttributeType;
 import org.vividus.ui.web.util.ElementUtil;
 
 public class RelativeToParentWidthFilter extends AbstractElementFilterAction
@@ -29,5 +30,11 @@ public class RelativeToParentWidthFilter extends AbstractElementFilterAction
         WebElement parentElement = element.findElement(By.xpath(".."));
         return Math.abs(expectedRelativeToParentWidth - ElementUtil.getElementWidthInPerc(parentElement, element))
                 <= ElementUtil.ACCURACY;
+    }
+
+    @Override
+    public IActionAttributeType getAttributeType()
+    {
+        return ActionAttributeType.RELATIVE_TO_PARENT_WIDTH;
     }
 }

@@ -21,6 +21,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -32,7 +33,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.stream.Stream;
 
 import com.github.valfirst.slf4jtest.TestLogger;
 import com.github.valfirst.slf4jtest.TestLoggerFactory;
@@ -41,27 +41,24 @@ import com.github.valfirst.slf4jtest.TestLoggerFactoryExtension;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
-import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.vividus.selenium.IWebDriverProvider;
-import org.vividus.ui.web.action.IExpectedConditions;
-import org.vividus.ui.web.action.IExpectedSearchContextCondition;
+import org.vividus.ui.action.IExpectedConditions;
+import org.vividus.ui.action.IExpectedSearchContextCondition;
+import org.vividus.ui.action.WaitResult;
+import org.vividus.ui.action.search.AbstractElementSearchAction;
+import org.vividus.ui.action.search.SearchParameters;
+import org.vividus.ui.action.search.Visibility;
 import org.vividus.ui.web.action.IJavascriptActions;
-import org.vividus.ui.web.action.IWaitActions;
 import org.vividus.ui.web.action.IWebElementActions;
-import org.vividus.ui.web.action.WaitResult;
+import org.vividus.ui.web.action.IWebWaitActions;
 
 @ExtendWith({ TestLoggerFactoryExtension.class, MockitoExtension.class })
 class ElementSearchActionTests
@@ -74,14 +71,13 @@ class ElementSearchActionTests
     private static final String TEXT = "Text";
     private static final String TOTAL_NUMBER_OF_ELEMENTS = "Total number of elements found {} is equal to {}";
     private static final By ELEMENT_BY_TEXT_LOCATOR = By.xpath(".//*[contains(normalize-space(text()), 'Text')]");
-    private static final String EXCEPTION = "exception";
     private static final Duration TIMEOUT = Duration.ofSeconds(0);
 
     private final TestLogger logger = TestLoggerFactory.getTestLogger(AbstractElementSearchAction.class);
 
     private List<WebElement> webElements;
     private SearchParameters parameters = new SearchParameters(TEXT);
-    private AbstractElementSearchAction spy;
+    private AbstractWebElementSearchAction spy;
 
     @Mock
     private IWebDriverProvider webDriverProvider;
@@ -102,7 +98,7 @@ class ElementSearchActionTests
     private IWebElementActions webElementActions;
 
     @Mock
-    private IWaitActions waitActions;
+    private IWebWaitActions waitActions;
 
     @Mock
     private WaitResult<Object> result;
@@ -114,7 +110,7 @@ class ElementSearchActionTests
     private IExpectedConditions<By> expectedConditions;
 
     @InjectMocks
-    private final AbstractElementSearchAction elementSearchAction = new AbstractElementSearchAction() { };
+    private final AbstractWebElementSearchAction elementSearchAction = new AbstractWebElementSearchAction() { };
 
     private void mockFoundElements()
     {
@@ -141,7 +137,7 @@ class ElementSearchActionTests
                 parameters, ANY_TEXT);
         assertNotEquals(webElements, foundElements);
         assertThat(logger.getLoggingEvents(), equalTo(List.of(info(TOTAL_NUMBER_OF_ELEMENTS,
-                AbstractElementSearchAction.generateCaseInsensitiveLocator(TEXT, ANY_TEXT), 1))));
+                AbstractWebElementSearchAction.generateCaseInsensitiveLocator(TEXT, ANY_TEXT), 1))));
     }
 
     @Test
@@ -157,7 +153,7 @@ class ElementSearchActionTests
                 parameters, ANY_TEXT);
         assertEquals(webElements, foundElements);
         assertThat(logger.getLoggingEvents(), equalTo(List.of(info(TOTAL_NUMBER_OF_ELEMENTS,
-                AbstractElementSearchAction.generateCaseInsensitiveLocator(StringUtils.EMPTY, ANY_TEXT), 1))));
+                AbstractWebElementSearchAction.generateCaseInsensitiveLocator(StringUtils.EMPTY, ANY_TEXT), 1))));
     }
 
     @Test
@@ -173,7 +169,7 @@ class ElementSearchActionTests
                 parameters, ANY_TEXT);
         assertNotEquals(webElements, foundElements);
         assertThat(logger.getLoggingEvents(), equalTo(List.of(info(TOTAL_NUMBER_OF_ELEMENTS,
-                AbstractElementSearchAction.generateCaseInsensitiveLocator(TEXT, ANY_TEXT), 1))));
+                AbstractWebElementSearchAction.generateCaseInsensitiveLocator(TEXT, ANY_TEXT), 1))));
     }
 
     @Test
@@ -189,7 +185,7 @@ class ElementSearchActionTests
                 parameters, ANY_TEXT);
         assertNotEquals(webElements, foundElements);
         assertThat(logger.getLoggingEvents(), equalTo(List.of(info(TOTAL_NUMBER_OF_ELEMENTS,
-                AbstractElementSearchAction.generateCaseInsensitiveLocator(TEXT, ANY_TEXT), 1))));
+                AbstractWebElementSearchAction.generateCaseInsensitiveLocator(TEXT, ANY_TEXT), 1))));
     }
 
     @Test
@@ -205,36 +201,7 @@ class ElementSearchActionTests
                 parameters, ANY_TEXT);
         assertNotEquals(webElements, foundElements);
         assertThat(logger.getLoggingEvents(), equalTo(List.of(info(TOTAL_NUMBER_OF_ELEMENTS,
-                AbstractElementSearchAction.generateCaseInsensitiveLocator(TEXT, ANY_TEXT), 1))));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    void testFindAndScroll()
-    {
-        spyElementSearchAction();
-        when(waitActions.wait(eq(searchContext), eq(TIMEOUT), any(), eq(false))).thenReturn(result);
-        WebElement element1 = mock(WebElement.class);
-        List<WebElement> elements = List.of(element1);
-        IExpectedSearchContextCondition<List<WebElement>> condition = mock(IExpectedSearchContextCondition.class);
-        when(expectedConditions.presenceOfAllElementsLocatedBy(any(By.class))).thenReturn(condition);
-        when(result.getData()).thenReturn(elements);
-        when(element1.isDisplayed()).thenAnswer(new Answer<Boolean>()
-        {
-            private int count;
-
-            @Override
-            public Boolean answer(InvocationOnMock invocation)
-            {
-                return ++count == 1 ? Boolean.FALSE : Boolean.TRUE;
-            }
-        });
-        List<WebElement> foundElements = elementSearchAction.findElements(searchContext, locator,
-                new SearchParameters());
-        assertEquals(1, foundElements.size());
-        assertEquals(element1, foundElements.get(0));
-        verify(waitActions).wait(searchContext, TIMEOUT, condition, false);
-        assertThat(logger.getLoggingEvents(), equalTo(List.of(info(TOTAL_NUMBER_OF_ELEMENTS, locator, 1))));
+                AbstractWebElementSearchAction.generateCaseInsensitiveLocator(TEXT, ANY_TEXT), 1))));
     }
 
     @Test
@@ -309,110 +276,7 @@ class ElementSearchActionTests
         verify(waitActions, times(2)).wait(searchContext, TIMEOUT, condition, false);
         assertThat(logger.getLoggingEvents(), equalTo(List
                 .of(info(TOTAL_NUMBER_OF_ELEMENTS, ELEMENT_BY_TEXT_LOCATOR, 0), info(TOTAL_NUMBER_OF_ELEMENTS,
-                        AbstractElementSearchAction.generateCaseInsensitiveLocator(TEXT, ANY_TEXT), 0))));
-    }
-
-    @Test
-    void testFindElementsDisplayedOnly()
-    {
-        WebElement element1 = mock(WebElement.class);
-        WebElement element2 = mock(WebElement.class);
-        List<WebElement> elementsList = List.of(element1, element2);
-        when(searchContext.findElements(locator)).thenReturn(elementsList);
-        when(element1.isDisplayed()).thenReturn(Boolean.TRUE);
-        when(element2.isDisplayed()).thenReturn(Boolean.FALSE);
-        List<WebElement> foundElements = elementSearchAction.findElements(searchContext, locator,
-                new SearchParameters().setWaitForElement(false));
-        assertEquals(1, foundElements.size());
-        assertEquals(element1, foundElements.get(0));
-        assertThat(logger.getLoggingEvents(), equalTo(List.of(info(TOTAL_NUMBER_OF_ELEMENTS, locator, 2))));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    void shouldFindAllElements()
-    {
-        spyElementSearchAction();
-        when(waitActions.wait(eq(searchContext), eq(TIMEOUT), any(), eq(false))).thenReturn(result);
-        WebElement element1 = mock(WebElement.class);
-        WebElement element2 = mock(WebElement.class);
-        List<WebElement> elements = List.of(element1, element2);
-        when(result.getData()).thenReturn(elements);
-        IExpectedSearchContextCondition<List<WebElement>> condition = mock(IExpectedSearchContextCondition.class);
-        when(expectedConditions.presenceOfAllElementsLocatedBy(any(By.class))).thenReturn(condition);
-        List<WebElement> foundElements = elementSearchAction.findElements(searchContext, locator,
-                new SearchParameters().setVisibility(Visibility.ALL));
-        assertEquals(2, foundElements.size());
-        assertEquals(element1, foundElements.get(0));
-        assertEquals(element2, foundElements.get(1));
-        verify(waitActions).wait(searchContext, TIMEOUT, condition, false);
-        assertThat(logger.getLoggingEvents(), equalTo(List.of(info(TOTAL_NUMBER_OF_ELEMENTS, locator, 2))));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    void shouldFindInvisibleElements()
-    {
-        spyElementSearchAction();
-        when(waitActions.wait(eq(searchContext), eq(TIMEOUT), any(), eq(false))).thenReturn(result);
-        WebElement element1 = mock(WebElement.class);
-        WebElement element2 = mock(WebElement.class);
-        List<WebElement> elements = List.of(element1, element2);
-        when(result.getData()).thenReturn(elements);
-        when(element1.isDisplayed()).thenReturn(Boolean.TRUE);
-        when(element2.isDisplayed()).thenReturn(Boolean.FALSE);
-        IExpectedSearchContextCondition<List<WebElement>> condition = mock(IExpectedSearchContextCondition.class);
-        when(expectedConditions.presenceOfAllElementsLocatedBy(any(By.class))).thenReturn(condition);
-        List<WebElement> foundElements = elementSearchAction.findElements(searchContext, locator,
-                new SearchParameters().setVisibility(Visibility.INVISIBLE));
-        assertEquals(1, foundElements.size());
-        assertEquals(List.of(element2), foundElements);
-        verify(waitActions).wait(searchContext, TIMEOUT, condition, false);
-        assertThat(logger.getLoggingEvents(), equalTo(List.of(info(TOTAL_NUMBER_OF_ELEMENTS, locator, 2))));
-    }
-
-    @Test
-    void testFindAllElementsWithException()
-    {
-        WebElement element = mock(WebElement.class);
-        List<WebElement> elements = List.of(element);
-        Mockito.doThrow(new StaleElementReferenceException(EXCEPTION)).when(element).isDisplayed();
-        when(searchContext.findElements(locator)).thenReturn(elements);
-        List<WebElement> foundElements = elementSearchAction.findElements(searchContext, locator,
-                new SearchParameters().setWaitForElement(false));
-        assertEquals(0, foundElements.size());
-        verify(element, Mockito.never()).getSize();
-        verifyNoInteractions(waitActions);
-        assertThat(logger.getLoggingEvents().get(0), equalTo(info(TOTAL_NUMBER_OF_ELEMENTS, locator, 1)));
-    }
-
-    private static Stream<Arguments> provideStaleElementTestData()
-    {
-        Answer<Boolean> elementStale = invocation -> {
-            throw new StaleElementReferenceException(EXCEPTION);
-        };
-        Answer<Boolean> elementDisplayed = invocation -> true;
-        return Stream.of(Arguments.of(elementStale, 0, 2), Arguments.of(elementDisplayed, 1, 2));
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideStaleElementTestData")
-    void testStaleElementSearchRetry(Answer<Boolean> answer, int expectedSize,
-            int isDisplayedMethodInvocations)
-    {
-        elementSearchAction.setRetrySearchIfStale(true);
-        WebElement element = mock(WebElement.class);
-        List<WebElement> elements = List.of(element);
-        Mockito.doThrow(new StaleElementReferenceException(EXCEPTION)).doAnswer(answer)
-                .when(element).isDisplayed();
-        when(searchContext.findElements(locator)).thenReturn(elements);
-        List<WebElement> foundElements = elementSearchAction
-                .findElements(searchContext, locator, new SearchParameters().setWaitForElement(false));
-        assertEquals(expectedSize, foundElements.size());
-        verify(element, Mockito.never()).getSize();
-        verifyNoInteractions(waitActions);
-        verify(element, times(isDisplayedMethodInvocations)).isDisplayed();
-        assertThat(logger.getLoggingEvents().get(0), equalTo(info(TOTAL_NUMBER_OF_ELEMENTS, locator, 1)));
+                        AbstractWebElementSearchAction.generateCaseInsensitiveLocator(TEXT, ANY_TEXT), 0))));
     }
 
     @Test
@@ -428,7 +292,7 @@ class ElementSearchActionTests
                 parameters, ANY_TEXT);
         assertEquals(webElements, foundElements);
         assertThat(logger.getLoggingEvents(), equalTo(List.of(info(TOTAL_NUMBER_OF_ELEMENTS,
-                AbstractElementSearchAction.generateCaseInsensitiveLocator(TEXT, ANY_TEXT), 1))));
+                AbstractWebElementSearchAction.generateCaseInsensitiveLocator(TEXT, ANY_TEXT), 1))));
     }
 
     @Test
@@ -445,7 +309,7 @@ class ElementSearchActionTests
                 parameters, ANY_TEXT);
         assertEquals(webElements, foundElements);
         assertThat(logger.getLoggingEvents(), equalTo(List.of(info(TOTAL_NUMBER_OF_ELEMENTS,
-                AbstractElementSearchAction.generateCaseInsensitiveLocator(TEXT, ANY_TEXT), 1))));
+                AbstractWebElementSearchAction.generateCaseInsensitiveLocator(TEXT, ANY_TEXT), 1))));
     }
 
     @Test
@@ -462,7 +326,16 @@ class ElementSearchActionTests
                 parameters, ANY_TEXT);
         assertEquals(webElements, foundElements);
         assertThat(logger.getLoggingEvents(), equalTo(List.of(info(TOTAL_NUMBER_OF_ELEMENTS,
-                AbstractElementSearchAction.generateCaseInsensitiveLocator(TEXT, ANY_TEXT), 1))));
+                AbstractWebElementSearchAction.generateCaseInsensitiveLocator(TEXT, ANY_TEXT), 1))));
+    }
+
+    @Test
+    void testIsElementVisibleWithScrolling()
+    {
+        WebElement element = mock(WebElement.class);
+        when(element.isDisplayed()).thenReturn(false).thenReturn(true);
+        assertTrue(elementSearchAction.isElementVisible(element));
+        verify(javascriptActions).scrollIntoView(element, true);
     }
 
     private void spyElementSearchAction()

@@ -30,10 +30,15 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebElement;
 import org.vividus.selenium.IWebDriverProvider;
+import org.vividus.ui.action.search.IActionAttributeType;
+import org.vividus.ui.action.search.IElementFilterAction;
+import org.vividus.ui.action.search.IElementSearchAction;
+import org.vividus.ui.action.search.SearchParameters;
 import org.vividus.ui.web.util.LocatorUtil;
 import org.vividus.util.UriUtils;
 
-public class LinkUrlSearch extends AbstractElementSearchAction implements IElementSearchAction, IElementFilterAction
+public class LinkUrlSearch extends AbstractWebElementSearchAction
+        implements IElementSearchAction, IElementFilterAction
 {
     private static final String LINK_PATTERN = ".//a[@href=%s]";
     private static final String LINK_WITH_CASE_INSENSITIVE_URL = ".//a[" + String.format(TRANSLATE_TO_LOWER_CASE,
@@ -135,6 +140,12 @@ public class LinkUrlSearch extends AbstractElementSearchAction implements IEleme
         URI hrefUri = UriUtils.createUri(href);
         URI uri = UriUtils.createUri(url);
         return hrefUri.getScheme().equals(uri.getScheme()) && hrefUri.getAuthority().equals(uri.getAuthority());
+    }
+
+    @Override
+    public IActionAttributeType getAttributeType()
+    {
+        return ActionAttributeType.LINK_URL;
     }
 
     public void setCaseSensitiveSearch(boolean caseSensitiveSearch)

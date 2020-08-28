@@ -19,6 +19,7 @@ package org.vividus.ui.web.action.search;
 import javax.inject.Inject;
 
 import org.openqa.selenium.WebElement;
+import org.vividus.ui.action.search.IActionAttributeType;
 import org.vividus.ui.web.action.IWebElementActions;
 
 public class ValidationIconSourceFilter extends AbstractElementFilterAction
@@ -29,5 +30,11 @@ public class ValidationIconSourceFilter extends AbstractElementFilterAction
     protected boolean matches(WebElement element, String validationIconSrc)
     {
         return validationIconSrc.equals(webElementActions.getCssValue(element, "background-image"));
+    }
+
+    @Override
+    public IActionAttributeType getAttributeType()
+    {
+        return ActionAttributeType.VALIDATION_ICON_SOURCE;
     }
 }

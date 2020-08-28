@@ -16,8 +16,14 @@
 
 package org.vividus.ui.web.action.search;
 
-import org.vividus.ui.web.State;
+import org.vividus.ui.State;
+import org.vividus.ui.action.search.IActionAttributeType;
 
 public class StateFilter extends AbstractStateFilter<State>
 {
+    @Override
+    public IActionAttributeType getAttributeType()
+    {
+        return ActionAttributeType.STATE;
+    }
 }

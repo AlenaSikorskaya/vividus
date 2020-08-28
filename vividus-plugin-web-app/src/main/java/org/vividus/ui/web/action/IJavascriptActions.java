@@ -35,6 +35,8 @@ public interface IJavascriptActions
      */
     <T> T executeScriptFromResource(Class<?> clazz, String jsResourceName, Object... args);
 
+    void scrollIntoView(WebElement webElement, boolean alignedToTheTop);
+
     <T> T executeAsyncScript(String script, Object... args);
 
     /**
@@ -46,8 +48,6 @@ public interface IJavascriptActions
      * @return result of the script execution
      */
     <T> T executeAsyncScriptFromResource(Class<?> clazz, String jsResourceName, Object... args);
-
-    void scrollIntoView(WebElement webElement, boolean alignedToTheTop);
 
     void scrollElementIntoViewportCenter(WebElement webElement);
 

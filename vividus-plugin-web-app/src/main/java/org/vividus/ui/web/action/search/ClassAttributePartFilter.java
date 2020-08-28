@@ -17,6 +17,7 @@
 package org.vividus.ui.web.action.search;
 
 import org.openqa.selenium.WebElement;
+import org.vividus.ui.action.search.IActionAttributeType;
 
 public class ClassAttributePartFilter extends AbstractElementFilterAction
 {
@@ -24,5 +25,11 @@ public class ClassAttributePartFilter extends AbstractElementFilterAction
     protected boolean matches(WebElement element, String text)
     {
         return element.getAttribute("class").contains(text);
+    }
+
+    @Override
+    public IActionAttributeType getAttributeType()
+    {
+        return ActionAttributeType.CLASS_ATTRIBUTE_PART;
     }
 }

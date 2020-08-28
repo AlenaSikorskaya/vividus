@@ -21,9 +21,12 @@ import java.util.List;
 import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebElement;
+import org.vividus.ui.action.search.IActionAttributeType;
+import org.vividus.ui.action.search.IElementSearchAction;
+import org.vividus.ui.action.search.SearchParameters;
 import org.vividus.ui.web.util.LocatorUtil;
 
-public class ButtonNameSearch extends AbstractElementSearchAction implements IElementSearchAction
+public class ButtonNameSearch extends AbstractWebElementSearchAction implements IElementSearchAction
 {
     private static final String BUTTON_WITH_ANY_ATTRIBUTE_NAME_PATTERN = "*[(local-name()='button' and "
             + "(@*=%1$s or text()=%1$s)) or (local-name()='input' and ((@type='submit' or @type='button') and "
@@ -40,5 +43,11 @@ public class ButtonNameSearch extends AbstractElementSearchAction implements IEl
             return findElementsByText(searchContext, locator, parameters, "button", "input");
         }
         return buttons;
+    }
+
+    @Override
+    public IActionAttributeType getAttributeType()
+    {
+        return ActionAttributeType.BUTTON_NAME;
     }
 }

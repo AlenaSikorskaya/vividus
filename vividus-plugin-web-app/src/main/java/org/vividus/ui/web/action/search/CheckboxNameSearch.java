@@ -24,8 +24,12 @@ import java.util.stream.Collectors;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebElement;
 import org.vividus.selenium.element.Checkbox;
+import org.vividus.ui.action.search.IActionAttributeType;
+import org.vividus.ui.action.search.IElementSearchAction;
+import org.vividus.ui.action.search.SearchParameters;
+import org.vividus.ui.action.search.Visibility;
 
-public class CheckboxNameSearch extends AbstractElementSearchAction implements IElementSearchAction
+public class CheckboxNameSearch extends AbstractWebElementSearchAction implements IElementSearchAction
 {
     private static final String CHECKBOX_LOCATOR = "input[@type='checkbox']";
     private static final String PRECEDING_SIBLING_CHECKBOX_LOCATOR = "preceding-sibling::" + CHECKBOX_LOCATOR;
@@ -78,5 +82,11 @@ public class CheckboxNameSearch extends AbstractElementSearchAction implements I
             return checkboxes.stream().map(e -> new Checkbox(e, label)).collect(Collectors.toList());
         }
         return List.of();
+    }
+
+    @Override
+    public IActionAttributeType getAttributeType()
+    {
+        return ActionAttributeType.CHECKBOX_NAME;
     }
 }
